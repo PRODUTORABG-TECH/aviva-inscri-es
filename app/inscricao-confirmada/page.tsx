@@ -1,6 +1,8 @@
+import Link from "next/link";
+
 export const metadata = {
-  title: "Inscrição Confirmada - Acampamento Aviva",
-  description: "Inscrição registrada para o Acampamento Aviva.",
+  title: "Inscrição Confirmada - Aviva Sião 2027",
+  description: "Inscrição registrada para o Aviva.",
 };
 
 export default function InscricaoConfirmadaPage() {
@@ -17,6 +19,12 @@ export default function InscricaoConfirmadaPage() {
           Sua inscrição para o <strong>Acampamento Aviva</strong> foi registrada. A vaga será confirmada
           após o pagamento da entrada.
         </p>
+        <Link
+            href="https://wa.me/5527997558607"
+            className=" mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 active:scale-[0.98]"
+          >
+            Suporte
+          </Link>
         <div className="mt-6 text-xs text-gray-400">Acampamento Aviva</div>
       </div>
     </div>

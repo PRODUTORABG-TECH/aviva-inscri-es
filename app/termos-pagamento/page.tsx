@@ -3,7 +3,7 @@ import Link from "next/link";
 import { formatarMoeda, getFaixaPagamento } from "@/lib/pagamento";
 
 export const metadata: Metadata = {
-  title: "Termos de Pagamento — Acampamento Aviva",
+  title: "Termos de Pagamento — Aviva Sião 2027",
 };
 
 export default function TermosPagamentoPage() {

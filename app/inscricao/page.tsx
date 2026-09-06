@@ -13,7 +13,7 @@ import {
 
 // TODO: configurar a URL real do backend n8n deste projeto (base do webhook
 // que expõe generate-otp, validate-otp e o endpoint de envio da inscrição).
-const API_BASE = "https://SEU-N8N-AQUI/webhook";
+const API_BASE = "https://n8n.produtorabg.com/webhook";
 
 function paraDigitos(formatted: string): string {
   return formatted.replace(/\D/g, "");
@@ -29,12 +29,10 @@ interface FormularioInscricao {
   nomeCompleto: string;
   dataNascimento: string;
   igreja: string;
-  bairroCidade: string;
+  cidade: string;
+  bairro: string;
   nomeResponsavel: string;
   telefoneResponsavel: string;
-  formaPagamento: "avista" | "parcelado" | "";
-  parcelasCartao: string;
-  melhorDiaPagamento: string;
   aceiteTermos: boolean;
 }
 
@@ -42,12 +40,10 @@ const FORM_INICIAL: FormularioInscricao = {
   nomeCompleto: "",
   dataNascimento: "",
   igreja: "",
-  bairroCidade: "",
+  cidade: "",
+  bairro: "",
   nomeResponsavel: "",
   telefoneResponsavel: "",
-  formaPagamento: "",
-  parcelasCartao: "",
-  melhorDiaPagamento: "",
   aceiteTermos: false,
 };
 
@@ -178,22 +174,18 @@ export default function InscricaoPage() {
     const idade = calcularIdade(form.dataNascimento, dataAtual);
 
     const payload = {
-      nomeCompleto: form.nomeCompleto,
+      nome: form.nomeCompleto,
       telefone: paraE164(validatedPhone),
-      dataNascimento: form.dataNascimento,
-      idade,
+      data_nascimento: form.dataNascimento,
       igreja: form.igreja,
-      bairroCidade: form.bairroCidade,
-      menorDeIdade: idade !== null && idade < 18,
-      nomeResponsavel: idade !== null && idade < 18 ? form.nomeResponsavel : "",
-      telefoneResponsavel: idade !== null && idade < 18 ? form.telefoneResponsavel : "",
-      formaPagamento: form.formaPagamento,
-      faixaPagamento: faixa,
-      parcelasCartao: faixa.modo === "cartao-taxas" && form.formaPagamento === "parcelado" ? form.parcelasCartao : "",
-      melhorDiaPagamento:
-        faixa.modo === "parcelas-fixas" && form.formaPagamento === "parcelado" ? form.melhorDiaPagamento : "",
-      aceiteTermos: form.aceiteTermos,
-      dataInscricao: dataAtual.toISOString(),
+      bairro: form.bairro,
+      cidade: form.cidade,
+      menor_idade: idade !== null && idade < 18,
+      nome_responsavel: idade !== null && idade < 18 ? form.nomeResponsavel : "",
+      telefone_responsavel: idade !== null && idade < 18 ? form.telefoneResponsavel : "",
+      id_lote: "LOTE_1",
+      aceite_termos: form.aceiteTermos,
+      cupom:""
     };
 
     try {
@@ -473,13 +465,24 @@ function DadosStep({
         />
       </Field>
 
-      <Field label="Bairro/Cidade">
+      <Field label="Bairro">
         <input
           type="text"
           required
-          value={form.bairroCidade}
-          onChange={(e) => onChange("bairroCidade", e.target.value)}
-          placeholder="Ex: Centro, Linhares/ES"
+          value={form.bairro}
+          onChange={(e) => onChange("bairro", e.target.value)}
+          placeholder="Ex: Centro"
+          className="input"
+        />
+      </Field>
+
+      <Field label="Cidade">
+        <input
+          type="text"
+          required
+          value={form.cidade}
+          onChange={(e) => onChange("cidade", e.target.value)}
+          placeholder="Ex: Linhares/ES"
           className="input"
         />
       </Field>
@@ -539,17 +542,14 @@ function PagamentoStep({
   onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
 }) {
-  const mostrarMelhorDia = faixa.modo === "parcelas-fixas" && form.formaPagamento === "parcelado";
-  const mostrarParcelasCartao = faixa.modo === "cartao-taxas" && form.formaPagamento === "parcelado";
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-gray-800">Pagamento</h2>
-        <p className="text-gray-500 text-sm mt-1">{faixa.label}</p>
       </div>
 
-      <Field label="Forma de pagamento">
+      {/* <Field label="Forma de pagamento">
         <div className="grid grid-cols-2 gap-3">
           <label
             className={`border rounded-xl p-4 cursor-pointer flex flex-col items-center gap-1 transition-all ${
@@ -585,33 +585,33 @@ function PagamentoStep({
             <span className="font-semibold text-gray-900">Parcelado</span>
           </label>
         </div>
-      </Field>
+      </Field> */}
 
-      {faixa.modo === "parcelas-fixas" && form.formaPagamento === "avista" && (
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700">
-          Valor total à vista: <strong>{formatarMoeda(faixa.valorTotal)}</strong>
-        </div>
-      )}
 
-      {faixa.modo === "parcelas-fixas" && form.formaPagamento === "parcelado" && (
+
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700 space-y-1">
+          <h3><strong>LOTE 01</strong></h3>
+          <p className="text-xs text-gray-500">valido até 15/09/2026</p>
+          <br/>
           <p>
-            Entrada de <strong>{formatarMoeda(faixa.entrada)}</strong> + {faixa.numParcelas}x de{" "}
-            <strong>{formatarMoeda(faixa.valorParcela)}</strong> sem juros.
+            Valor total à vista: <strong>{formatarMoeda(420)}</strong>
+            <br/>
+            <br/>
+            Entrada de <strong>{formatarMoeda(80)}</strong> + {4}x de{" "}
+            <strong>{formatarMoeda(85)}</strong> sem juros.
           </p>
           <p className="text-xs text-gray-500">
-            Número de parcelas determinado automaticamente pela data da inscrição.
+            valores correspondentes a pagamento via pix.
           </p>
         </div>
-      )}
 
-      {faixa.modo === "cartao-taxas" && form.formaPagamento === "avista" && (
+      {/* {faixa.modo === "cartao-taxas" && form.formaPagamento === "avista" && (
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700">
           Pagamento à vista. Valor a confirmar diretamente com a organização.
         </div>
-      )}
+      )} */}
 
-      {mostrarParcelasCartao && (
+      {/* {mostrarParcelasCartao && (
         <Field label="Número de parcelas no cartão">
           <select
             required
@@ -630,9 +630,9 @@ function PagamentoStep({
             Parcelamento no cartão com acréscimo de taxas (percentual a definir pela organização).
           </p>
         </Field>
-      )}
+      )} */}
 
-      {mostrarMelhorDia && (
+      {/* {mostrarMelhorDia && (
         <Field label="Melhor dia do mês para pagamento">
           <select
             required
@@ -651,7 +651,7 @@ function PagamentoStep({
             Usado para enviarmos lembretes das parcelas mensais via Pix.
           </p>
         </Field>
-      )}
+      )} */}
 
       <div className="flex items-start gap-3 pt-1">
         <input

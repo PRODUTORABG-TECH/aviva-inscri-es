@@ -37,7 +37,7 @@ export function getFaixaPagamento(dataAtual: Date): FaixaPagamento {
   if (dataAtual <= corte15Set) {
     return {
       modo: "parcelas-fixas",
-      label: "Inscrições até 15/09",
+      label: "LOTE 01 - Inscrições até 15/09",
       valorTotal: 420,
       entrada: 80,
       numParcelas: 4,
