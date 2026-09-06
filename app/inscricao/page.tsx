@@ -712,6 +712,7 @@ function PagamentoStep({
         <p className="text-xs text-gray-500">
           valores correspondentes a pagamento via pix.
         </p>
+        
       </div>
 
       {/* {faixa.modo === "cartao-taxas" && form.formaPagamento === "avista" && (
@@ -763,6 +764,10 @@ function PagamentoStep({
       )} */}
 
 
+
+<p className=" text-gray-500 text-center text-red-400">
+          A chave pix será enviada para o número do WhatsApp.
+        </p>
 
       <SubmitButton loading={loading} label="Finalizar inscrição" />
       <button
