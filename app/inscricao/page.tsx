@@ -47,7 +47,7 @@ const FORM_INICIAL: FormularioInscricao = {
   aceiteTermos: false,
 };
 
-const STORAGE_KEY = "aviva_inscricao_acampamento";
+const STORAGE_KEY = "aviva_inscricao";
 
 function loadSession() {
   try {
@@ -189,7 +189,7 @@ export default function InscricaoPage() {
     };
 
     try {
-      const res = await fetch(`${API_BASE}/inscricao-acampamento`, {
+      const res = await fetch(`${API_BASE}/inscricao-aviva`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

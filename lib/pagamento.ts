@@ -1,6 +1,3 @@
-// Regras de valores e prazos da inscrição do acampamento.
-// Fonte: tabela de valores por data de inscrição fornecida pela organização.
-
 export type FaixaPagamento =
   | {
       modo: "parcelas-fixas";

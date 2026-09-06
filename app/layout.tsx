@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Acampamento Aviva",
-  description: "Inscrição para o Acampamento Aviva",
+  title: "Aviva Siaõ 2027",
+  description: "Inscrição para o Aviva Sião 2027",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
