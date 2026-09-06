@@ -61,13 +61,13 @@ function loadSession() {
 function saveSession(data: object) {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {}
+  } catch { }
 }
 
 function clearSession() {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
-  } catch {}
+  } catch { }
 }
 
 export default function InscricaoPage() {
@@ -185,7 +185,7 @@ export default function InscricaoPage() {
       telefone_responsavel: idade !== null && idade < 18 ? form.telefoneResponsavel : "",
       id_lote: "LOTE_1",
       aceite_termos: form.aceiteTermos,
-      cupom:""
+      cupom: ""
     };
 
     try {
@@ -214,7 +214,7 @@ export default function InscricaoPage() {
     <div className="min-h-screen bg-[#c185fb] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black">Acampamento Aviva</h1>
+          <h1 className="text-3xl font-bold text-black">Aviva Sião 2027</h1>
           <p className="text-black mt-1 text-sm">Inscrição</p>
           <StepIndicator step={step} />
         </div>
@@ -268,6 +268,7 @@ export default function InscricaoPage() {
             <PagamentoStep
               form={form}
               faixa={faixa}
+              faixaAtual={getFaixaPagamento(new Date())}
               loading={loading}
               onChange={handleChange}
               onSubmit={handleSubmitPagamento}
@@ -289,9 +290,8 @@ function StepIndicator({ step }: { step: Step }) {
       {steps.map((s, i) => (
         <div key={s} className="flex items-center gap-2">
           <div
-            className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
-              i <= index ? "bg-[#750eda] text-white" : "bg-white text-[#750eda]"
-            }`}
+            className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${i <= index ? "bg-[#750eda] text-white" : "bg-white text-[#750eda]"
+              }`}
           >
             {i < index ? "✓" : i + 1}
           </div>
@@ -453,19 +453,7 @@ function DadosStep({
           className="input"
         />
       </Field>
-
-      <Field label="Igreja">
-        <input
-          type="text"
-          required
-          value={form.igreja}
-          onChange={(e) => onChange("igreja", e.target.value)}
-          placeholder="Nome da igreja"
-          className="input"
-        />
-      </Field>
-
-      <Field label="Bairro">
+      <Field label="Seu Bairro">
         <input
           type="text"
           required
@@ -476,7 +464,7 @@ function DadosStep({
         />
       </Field>
 
-      <Field label="Cidade">
+      <Field label="Sua Cidade">
         <input
           type="text"
           required
@@ -486,6 +474,19 @@ function DadosStep({
           className="input"
         />
       </Field>
+
+      <Field label="Nome da sua Igreja">
+        <input
+          type="text"
+          required
+          value={form.igreja}
+          onChange={(e) => onChange("igreja", e.target.value)}
+          placeholder="Nome da igreja"
+          className="input"
+        />
+      </Field>
+
+
 
       {menorDeIdade && (
         <div className="border-t border-gray-100 pt-4 space-y-4">
@@ -527,16 +528,36 @@ function DadosStep({
   );
 }
 
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="text-base font-bold text-gray-800 border-b border-gray-100 pb-2 mb-3">{title}</h2>
+      <div className="text-sm text-gray-600 leading-relaxed">{children}</div>
+    </section>
+  );
+}
+
+function FaixaItem({ texto, destaque }: { texto: string; destaque: boolean }) {
+  return (
+    <li className={`flex gap-2 rounded-lg px-2 py-1 ${destaque ? "bg-blue-50" : ""}`}>
+      <span className="text-blue-500 font-bold shrink-0">•</span>
+      <span className={destaque ? "font-semibold text-gray-900" : ""}>{texto}</span>
+    </li>
+  );
+}
+
 function PagamentoStep({
   form,
   faixa,
   loading,
+  faixaAtual,
   onChange,
   onSubmit,
   onBack,
 }: {
   form: FormularioInscricao;
   faixa: ReturnType<typeof getFaixaPagamento>;
+  faixaAtual: ReturnType<typeof getFaixaPagamento>;
   loading: boolean;
   onChange: (field: keyof FormularioInscricao, value: string | boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -545,9 +566,97 @@ function PagamentoStep({
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-gray-800">Pagamento</h2>
-      </div>
+      {/* 
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8 space-y-8"> */}
+      <header>
+        <h1 className="text-2xl font-bold text-gray-900">Termos de Pagamento</h1>
+      </header>
+
+      <Section title="Valores por data de inscrição">
+        <ul className="space-y-2">
+          <FaixaItem
+            texto="Inscrições até 15/09: valor total R$ 420. Entrada de R$ 80 + 4x de R$ 85 sem juros."
+            destaque={faixaAtual.modo === "parcelas-fixas" && faixaAtual.label === "Inscrições até 15/09"}
+          />
+          <FaixaItem
+            texto="Inscrições até 15/10: valor total R$ 450. Entrada de R$ 90 + 3x de R$ 120 sem juros."
+            destaque={faixaAtual.modo === "parcelas-fixas" && faixaAtual.label === "Inscrições até 15/10"}
+          />
+          <FaixaItem
+            texto="Inscrições até 15/11: valor total R$ 490. Entrada de R$ 150 + 2x de R$ 170 sem juros."
+            destaque={faixaAtual.modo === "parcelas-fixas" && faixaAtual.label === "Inscrições até 15/11"}
+          />
+          <FaixaItem
+            texto="A partir de 16/11, as inscrições são feitas à vista ou parceladas no cartão, com acréscimo das taxas."
+            destaque={faixaAtual.modo === "cartao-taxas"}
+          />
+        </ul>
+        <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+          {faixaAtual.modo === "parcelas-fixas" ? (
+            <p>
+              Faixa vigente hoje: <strong>{faixaAtual.label}</strong> — entrada de{" "}
+              <strong>{formatarMoeda(faixaAtual.entrada)}</strong> + {faixaAtual.numParcelas}x de{" "}
+              <strong>{formatarMoeda(faixaAtual.valorParcela)}</strong> sem juros (total{" "}
+              {formatarMoeda(faixaAtual.valorTotal)}).
+            </p>
+          ) : (
+            <p>
+              Faixa vigente hoje: <strong>{faixaAtual.label}</strong> — pagamento à vista ou parcelado no
+              cartão com acréscimo de taxas.
+            </p>
+          )}
+        </div>
+      </Section>
+
+      <Section title="Condições gerais">
+        <ul className="space-y-3">
+          <li>A inscrição só é confirmada mediante o pagamento da entrada.</li>
+          <li>
+            As parcelas sem juros devem ser pagas via Pix, e os comprovantes precisam ser enviados todos os
+            meses.
+          </li>
+          <li>
+            A última parcela ou o saldo devedor precisa ser pago até o dia <strong>15/01</strong>, podendo ser
+            pago via cartão de crédito com o adicional das taxas.
+          </li>
+          <li>
+            Após o dia 15/01, se o pagamento total não tiver sido feito, a inscrição será desconsiderada.
+          </li>
+          <li>
+            Em caso de desistência (exceto exclusivamente por motivo de saúde) <strong>NÃO</strong> haverá
+            reembolso do montante pago. Pode haver transferência da inscrição para outra pessoa, desde que
+            mantidas as mesmas condições de sexo, faixa etária e origem do transporte.
+          </li>
+          <li>As acomodações são em alojamentos (beliches).</li>
+          <li>É obrigatória a participação nas plenárias.</li>
+          <li>Está incluso: café da manhã, almoço, café da tarde, jantar e transporte.</li>
+        </ul>
+      </Section>
+
+
+        <div className="flex items-start gap-3 pt-1">
+          <input
+            type="checkbox"
+            id="termos"
+            required
+            checked={form.aceiteTermos}
+            onChange={(e) => onChange("aceiteTermos", e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+          />
+          <label htmlFor="termos" className="text-sm text-gray-600 cursor-pointer leading-snug">
+            Li e concordo com os{" "}
+            <Link
+              href="/termos-pagamento"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline underline-offset-2 hover:text-blue-700"
+            >
+              termos de pagamento
+            </Link>
+            .
+          </label>
+        </div>
+
 
       {/* <Field label="Forma de pagamento">
         <div className="grid grid-cols-2 gap-3">
@@ -589,21 +698,21 @@ function PagamentoStep({
 
 
 
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700 space-y-1">
-          <h3><strong>LOTE 01</strong></h3>
-          <p className="text-xs text-gray-500">valido até 15/09/2026</p>
-          <br/>
-          <p>
-            Valor total à vista: <strong>{formatarMoeda(420)}</strong>
-            <br/>
-            <br/>
-            Entrada de <strong>{formatarMoeda(80)}</strong> + {4}x de{" "}
-            <strong>{formatarMoeda(85)}</strong> sem juros.
-          </p>
-          <p className="text-xs text-gray-500">
-            valores correspondentes a pagamento via pix.
-          </p>
-        </div>
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700 space-y-1">
+        <h3><strong>LOTE 01</strong></h3>
+        <p className="text-xs text-gray-500">valido até 15/09/2026</p>
+        <br />
+        <p>
+          Valor total à vista: <strong>{formatarMoeda(420)}</strong>
+          <br />
+          <br />
+          Entrada de <strong>{formatarMoeda(80)}</strong> + {4}x de{" "}
+          <strong>{formatarMoeda(85)}</strong> sem juros.
+        </p>
+        <p className="text-xs text-gray-500">
+          valores correspondentes a pagamento via pix.
+        </p>
+      </div>
 
       {/* {faixa.modo === "cartao-taxas" && form.formaPagamento === "avista" && (
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700">
@@ -653,28 +762,7 @@ function PagamentoStep({
         </Field>
       )} */}
 
-      <div className="flex items-start gap-3 pt-1">
-        <input
-          type="checkbox"
-          id="termos"
-          required
-          checked={form.aceiteTermos}
-          onChange={(e) => onChange("aceiteTermos", e.target.checked)}
-          className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-        />
-        <label htmlFor="termos" className="text-sm text-gray-600 cursor-pointer leading-snug">
-          Li e concordo com os{" "}
-          <Link
-            href="/termos-pagamento"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline underline-offset-2 hover:text-blue-700"
-          >
-            termos de pagamento
-          </Link>
-          .
-        </label>
-      </div>
+
 
       <SubmitButton loading={loading} label="Finalizar inscrição" />
       <button

@@ -14,7 +14,7 @@ export default function TermosPagamentoPage() {
       <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8 space-y-8">
         <header>
           <p className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-2">
-            Acampamento Aviva
+           Aviva Sião 2027
           </p>
           <h1 className="text-2xl font-bold text-gray-900">Termos de Pagamento</h1>
         </header>

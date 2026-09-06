@@ -16,7 +16,7 @@ export default function InscricaoConfirmadaPage() {
         </div>
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Inscrição enviada!</h1>
         <p className="text-gray-500 text-sm leading-relaxed">
-          Sua inscrição para o <strong>Acampamento Aviva</strong> foi registrada. A vaga será confirmada
+          Sua inscrição para o <strong>Aviva Sião 2027</strong> foi registrada. A vaga será confirmada
           após o pagamento da entrada.
         </p>
         <Link
@@ -25,7 +25,7 @@ export default function InscricaoConfirmadaPage() {
           >
             Suporte
           </Link>
-        <div className="mt-6 text-xs text-gray-400">Acampamento Aviva</div>
+        <div className="mt-6 text-xs text-gray-400">Aviva Sião 2027</div>
       </div>
     </div>
   );
