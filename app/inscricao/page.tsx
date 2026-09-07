@@ -23,10 +23,11 @@ function paraE164(formatted: string): string {
   return `+55${paraDigitos(formatted)}`;
 }
 
-type Step = "telefone" | "otp" | "dados" | "pagamento";
+type Step = "dados" | "pagamento";
 
 interface FormularioInscricao {
   nomeCompleto: string;
+  telefone:string;
   dataNascimento: string;
   igreja: string;
   cidade: string;
@@ -38,6 +39,7 @@ interface FormularioInscricao {
 
 const FORM_INICIAL: FormularioInscricao = {
   nomeCompleto: "",
+  telefone:"",
   dataNascimento: "",
   igreja: "",
   cidade: "",
@@ -71,7 +73,7 @@ function clearSession() {
 }
 
 export default function InscricaoPage() {
-  const [step, setStep] = useState<Step>("telefone");
+  const [step, setStep] = useState<Step>("dados");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [validatedPhone, setValidatedPhone] = useState("");
@@ -86,7 +88,7 @@ export default function InscricaoPage() {
   useEffect(() => {
     const saved = loadSession();
     if (!saved) return;
-    if (saved.step) setStep(saved.step);
+    // if (saved.step) setStep(saved.step);
     if (saved.name) setName(saved.name);
     if (saved.phone) setPhone(saved.phone);
     if (saved.validatedPhone) setValidatedPhone(saved.validatedPhone);
@@ -124,7 +126,7 @@ export default function InscricaoPage() {
           setForm((f) => ({ ...f, nomeCompleto: name }));
           setStep("dados");
         } else {
-          setStep("otp");
+          setStep("dados");
         }
       } else {
         setError(data.mensagem || "Erro ao enviar código.");
@@ -175,7 +177,7 @@ export default function InscricaoPage() {
 
     const payload = {
       nome: form.nomeCompleto,
-      telefone: paraE164(validatedPhone),
+      telefone: paraE164(form.telefone),
       data_nascimento: form.dataNascimento,
       igreja: form.igreja,
       bairro: form.bairro,
@@ -227,7 +229,7 @@ export default function InscricaoPage() {
             </div>
           )}
 
-          {step === "telefone" && (
+          {/* {step === "telefone" && (
             <TelefoneStep
               name={name}
               phone={phone}
@@ -236,9 +238,9 @@ export default function InscricaoPage() {
               onPhoneChange={(v) => setPhone(formatarTelefone(v))}
               onSubmit={handleRequestOtp}
             />
-          )}
+          )} */}
 
-          {step === "otp" && (
+          {/* {step === "otp" && (
             <OtpStep
               phone={validatedPhone}
               otp={otp}
@@ -251,7 +253,7 @@ export default function InscricaoPage() {
                 setOtp("");
               }}
             />
-          )}
+          )} */}
 
           {step === "dados" && (
             <DadosStep
@@ -260,7 +262,7 @@ export default function InscricaoPage() {
               referencia={dataAtual}
               onChange={handleChange}
               onSubmit={handleSubmitDados}
-              onBack={() => setStep("telefone")}
+              onBack={() => setStep("dados")}
             />
           )}
 
@@ -282,8 +284,8 @@ export default function InscricaoPage() {
 }
 
 function StepIndicator({ step }: { step: Step }) {
-  const steps: Step[] = ["telefone", "otp", "dados", "pagamento"];
-  const labels = ["Telefone", "Código", "Dados", "Pagamento"];
+  const steps: Step[] = ["dados", "pagamento"];
+  const labels = ["Dados", "Pagamento"];
   const index = steps.indexOf(step);
   return (
     <div className="flex items-center justify-center gap-2 mt-4">
@@ -440,8 +442,12 @@ function DadosStep({
         />
       </Field>
 
-      <Field label="WhatsApp validado">
-        <input type="text" value={validatedPhone} readOnly className="input bg-gray-50 text-gray-400 cursor-not-allowed" />
+      <Field label="WhatsApp">
+        <input 
+        type="text" 
+        value={form.telefone}
+        onChange={(e) => onChange("telefone", formatarTelefone(e.target.value))} 
+        className="input" />
       </Field>
 
       <Field label="Data de nascimento">
@@ -517,13 +523,14 @@ function DadosStep({
       )}
 
       <SubmitButton loading={false} label="Ir para pagamento" />
-      <button
+     
+      {/* <button
         type="button"
         onClick={onBack}
         className="w-full text-sm text-gray-400 hover:text-gray-600 transition-colors mt-1"
       >
         ← Alterar número
-      </button>
+      </button> */}
     </form>
   );
 }
@@ -766,7 +773,7 @@ function PagamentoStep({
 
 
 <p className=" text-gray-500 text-center text-red-400">
-          A chave pix será enviada para o número do WhatsApp.
+          Clique em finalizar a inscrição para visualizar a chave pix.
         </p>
 
       <SubmitButton loading={loading} label="Finalizar inscrição" />
