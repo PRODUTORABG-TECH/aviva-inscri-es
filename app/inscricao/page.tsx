@@ -4,8 +4,12 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DIAS_MES_PAGAMENTO,
+  Lote,
+  LoteResponse,
+  LotesApiResponse,
   OPCOES_PARCELAS_CARTAO,
   calcularIdade,
+  fetchLotesData,
   formatarMoeda,
   formatarTelefone,
   getFaixaPagamento,
@@ -27,7 +31,7 @@ type Step = "dados" | "pagamento";
 
 interface FormularioInscricao {
   nomeCompleto: string;
-  telefone:string;
+  telefone: string;
   dataNascimento: string;
   igreja: string;
   cidade: string;
@@ -39,7 +43,7 @@ interface FormularioInscricao {
 
 const FORM_INICIAL: FormularioInscricao = {
   nomeCompleto: "",
-  telefone:"",
+  telefone: "",
   dataNascimento: "",
   igreja: "",
   cidade: "",
@@ -84,6 +88,35 @@ export default function InscricaoPage() {
 
   const dataAtual = useMemo(() => new Date(), []);
   const faixa = useMemo(() => getFaixaPagamento(dataAtual), [dataAtual]);
+
+
+  const [loadingLotes, setLoadingLotes] = useState(true);
+  const [lotes, setLotes] = useState<Lote[]>([]);
+
+  useEffect(() => {
+    async function carregarLotes() {
+      try {
+        setLoadingLotes(true);
+        const dados = await fetchLotesData();
+
+        if (dados && dados.success) {
+
+          setLotes(dados.lotes);
+        } else {
+          setLotes([]);
+        }
+
+      } catch (error) {
+        console.error("Erro ao buscar lotes:", error);
+        setLotes([]);
+      } finally {
+        setLoadingLotes(false);
+      }
+    }
+
+    carregarLotes();
+  }, []);
+
 
   useEffect(() => {
     const saved = loadSession();
@@ -175,6 +208,8 @@ export default function InscricaoPage() {
 
     const idade = calcularIdade(form.dataNascimento, dataAtual);
 
+    const loteAtual = lotes.find((lote) => lote.is_active);
+
     const payload = {
       nome: form.nomeCompleto,
       telefone: paraE164(form.telefone),
@@ -185,10 +220,12 @@ export default function InscricaoPage() {
       menor_idade: idade !== null && idade < 18,
       nome_responsavel: idade !== null && idade < 18 ? form.nomeResponsavel : "",
       telefone_responsavel: idade !== null && idade < 18 ? form.telefoneResponsavel : "",
-      id_lote: "LOTE_1",
+      id_lote: loteAtual?.id_lote || "",
       aceite_termos: form.aceiteTermos,
       cupom: ""
     };
+
+    console.log(payload)
 
     try {
       const res = await fetch(`${API_BASE}/inscricao-aviva`, {
@@ -270,8 +307,9 @@ export default function InscricaoPage() {
             <PagamentoStep
               form={form}
               faixa={faixa}
+              lotes={lotes}
               faixaAtual={getFaixaPagamento(new Date())}
-              loading={loading}
+              loading={loading || loadingLotes}
               onChange={handleChange}
               onSubmit={handleSubmitPagamento}
               onBack={() => setStep("dados")}
@@ -443,11 +481,11 @@ function DadosStep({
       </Field>
 
       <Field label="WhatsApp">
-        <input 
-        type="text" 
-        value={form.telefone}
-        onChange={(e) => onChange("telefone", formatarTelefone(e.target.value))} 
-        className="input" />
+        <input
+          type="text"
+          value={form.telefone}
+          onChange={(e) => onChange("telefone", formatarTelefone(e.target.value))}
+          className="input" />
       </Field>
 
       <Field label="Data de nascimento">
@@ -523,7 +561,7 @@ function DadosStep({
       )}
 
       <SubmitButton loading={false} label="Ir para pagamento" />
-     
+
       {/* <button
         type="button"
         onClick={onBack}
@@ -558,6 +596,7 @@ function PagamentoStep({
   faixa,
   loading,
   faixaAtual,
+  lotes,
   onChange,
   onSubmit,
   onBack,
@@ -565,11 +604,14 @@ function PagamentoStep({
   form: FormularioInscricao;
   faixa: ReturnType<typeof getFaixaPagamento>;
   faixaAtual: ReturnType<typeof getFaixaPagamento>;
+  lotes: Lote[];
   loading: boolean;
   onChange: (field: keyof FormularioInscricao, value: string | boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
 }) {
+
+  const loteAtual = lotes.find((lote) => lote.is_active);
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
@@ -579,8 +621,59 @@ function PagamentoStep({
         <h1 className="text-2xl font-bold text-gray-900">Termos de Pagamento</h1>
       </header>
 
+
+
       <Section title="Valores por data de inscrição">
-        <ul className="space-y-2">
+
+        <ul className="space-y-4 text-gray-700 divide-y divide-gray-200">
+          {lotes.map((lote) => {
+            const isAtivo = lote.is_active;
+
+            const formatarMoeda = (valor: number) =>
+              valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+            return (
+              <li key={lote.id_lote} className="flex flex-col gap-1">
+                {/* Linha superior: Título do Lote e o Badge (se ativo) */}
+                <div className="flex items-center gap-2">
+                  <span className={`font-semibold ${isAtivo ? "text-gray-900" : "text-gray-600"}`}>
+                    {lote.lote_desc}
+                  </span>
+
+                  {isAtivo && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-green-100 text-green-800">
+                      Lote Atual
+                    </span>
+                  )}
+                </div>
+
+                {/* Linha inferior: Descrição do período e valores */}
+                <div className={`text-sm leading-relaxed ${isAtivo ? "text-gray-800" : "text-gray-500"}`}>
+                  {/* Data: texto menor (text-xs) e uma cor mais apagada dependendo de estar ativo ou não */}
+                  <div className={`text-xs ${isAtivo ? "text-gray-500" : "text-gray-400"}`}>
+                    Inscrições de {lote.data_abertura_lote} até {lote.data_fechamento_lote}
+                  </div>
+
+                  {/* Valor Total: Destaque com negrito (font-bold) */}
+                  <div className="mt-0.5">
+                    <span className="font-bold">Valor total: {formatarMoeda(lote.valor_total)}</span>.
+                  </div>
+
+                  {/* Parcelamento: Mantém a formatação base */}
+                  <div>
+                    Entrada de {formatarMoeda(lote.valor_entrada)} + {lote.quantas_vezes}x de {formatarMoeda(lote.valor_parcela)} sem juros.
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+
+          {/* Aviso final sobre o cartão */}
+          <li className="pt-2 text-sm text-gray-500 italic">
+            * Após {lotes.length > 0 ? lotes[lotes.length - 1].data_fechamento_lote : 'o último lote'}, as inscrições são feitas à vista ou parceladas no cartão, com acréscimo das taxas.
+          </li>
+        </ul>
+        {/* <ul className="space-y-2">
           <FaixaItem
             texto="Inscrições até 15/09: valor total R$ 420. Entrada de R$ 80 + 4x de R$ 85 sem juros."
             destaque={faixaAtual.modo === "parcelas-fixas" && faixaAtual.label === "Inscrições até 15/09"}
@@ -597,8 +690,8 @@ function PagamentoStep({
             texto="A partir de 16/11, as inscrições são feitas à vista ou parceladas no cartão, com acréscimo das taxas."
             destaque={faixaAtual.modo === "cartao-taxas"}
           />
-        </ul>
-        <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+        </ul> */}
+        {/* <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
           {faixaAtual.modo === "parcelas-fixas" ? (
             <p>
               Faixa vigente hoje: <strong>{faixaAtual.label}</strong> — entrada de{" "}
@@ -612,7 +705,7 @@ function PagamentoStep({
               cartão com acréscimo de taxas.
             </p>
           )}
-        </div>
+        </div> */}
       </Section>
 
       <Section title="Condições gerais">
@@ -641,28 +734,28 @@ function PagamentoStep({
       </Section>
 
 
-        <div className="flex items-start gap-3 pt-1">
-          <input
-            type="checkbox"
-            id="termos"
-            required
-            checked={form.aceiteTermos}
-            onChange={(e) => onChange("aceiteTermos", e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-          />
-          <label htmlFor="termos" className="text-sm text-gray-600 cursor-pointer leading-snug">
-            Li e concordo com os{" "}
-            <Link
-              href="/termos-pagamento"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline underline-offset-2 hover:text-blue-700"
-            >
-              termos de pagamento
-            </Link>
-            .
-          </label>
-        </div>
+      <div className="flex items-start gap-3 pt-1">
+        <input
+          type="checkbox"
+          id="termos"
+          required
+          checked={form.aceiteTermos}
+          onChange={(e) => onChange("aceiteTermos", e.target.checked)}
+          className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+        />
+        <label htmlFor="termos" className="text-sm text-gray-600 cursor-pointer leading-snug">
+          Li e concordo com os{" "}
+          <Link
+            href="/termos-pagamento"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline underline-offset-2 hover:text-blue-700"
+          >
+            termos de pagamento
+          </Link>
+          .
+        </label>
+      </div>
 
 
       {/* <Field label="Forma de pagamento">
@@ -706,21 +799,29 @@ function PagamentoStep({
 
 
       <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700 space-y-1">
-        <h3><strong>LOTE 01</strong></h3>
-        <p className="text-xs text-gray-500">valido até 15/09/2026</p>
-        <br />
-        <p>
-          Valor total à vista: <strong>{formatarMoeda(420)}</strong>
-          <br />
-          <br />
-          Entrada de <strong>{formatarMoeda(80)}</strong> + {4}x de{" "}
-          <strong>{formatarMoeda(85)}</strong> sem juros.
-        </p>
-        <p className="text-xs text-gray-500">
-          valores correspondentes a pagamento via pix.
-        </p>
-        
-      </div>
+  {/* Flex adicionado para deixar o título e o badge na mesma linha */}
+  <div className="flex items-center gap-2">
+    <h3><strong>{loteAtual?.lote_desc}</strong></h3>
+    {loteAtual && (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-green-100 text-green-800">
+        Lote Atual
+      </span>
+    )}
+  </div>
+  
+  <p className="text-xs text-gray-500">valido até {loteAtual?.data_fechamento_lote}</p>
+  <br />
+  <p>
+    Valor total à vista: <strong>{formatarMoeda(loteAtual?.valor_total || 0)}</strong>
+    <br />
+    <br />
+    Entrada de <strong>{formatarMoeda(loteAtual?.valor_entrada || 0)}</strong> + {loteAtual?.quantas_vezes}x de{" "}
+    <strong>{formatarMoeda(loteAtual?.valor_parcela || 0)}</strong> sem juros.
+  </p>
+  <p className="text-xs text-gray-500">
+    valores correspondentes a pagamento via pix.
+  </p>
+</div>
 
       {/* {faixa.modo === "cartao-taxas" && form.formaPagamento === "avista" && (
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm text-gray-700">
@@ -772,9 +873,9 @@ function PagamentoStep({
 
 
 
-<p className=" text-gray-500 text-center text-red-400">
-          Clique em finalizar a inscrição para visualizar a chave pix.
-        </p>
+      <p className=" text-gray-500 text-center text-red-400">
+        Clique em finalizar a inscrição para visualizar a chave pix.
+      </p>
 
       <SubmitButton loading={loading} label="Finalizar inscrição" />
       <button

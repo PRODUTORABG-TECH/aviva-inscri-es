@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aviva Siaõ 2027",
+  title: "Aviva Sião 2027",
   description: "Inscrição para o Aviva Sião 2027",
 };
 
