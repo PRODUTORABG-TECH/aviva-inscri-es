@@ -668,8 +668,34 @@ function PagamentoStep({
             );
           })}
 
+          <li className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-600">
+                    LOTE 04
+                  </span>
+                </div>
+
+                {/* Linha inferior: Descrição do período e valores */}
+                <div className="text-sm leading-relaxed text-gray-500">
+                  {/* Data: texto menor (text-xs) e uma cor mais apagada dependendo de estar ativo ou não */}
+                  <div className="text-xs text-gray-400">
+                    Inscrições de  16/11/2026 até 15/01/2027
+                  </div>
+
+                  {/* Valor Total: Destaque com negrito (font-bold) */}
+                  <div className="mt-0.5">
+                    <span className="font-bold">Valor total: {formatarMoeda(500)}</span>.
+                  </div>
+
+                  {/* Parcelamento: Mantém a formatação base */}
+                  <div>
+                    Parcelado no cartão com juros.
+                  </div>
+                </div>
+              </li>
+
           {/* Aviso final sobre o cartão */}
-          <li className="pt-2 text-sm text-gray-500 italic">
+          <li className="pt-2 text-sm text-gray-600 italic">
             * Após {lotes.length > 0 ? lotes[lotes.length - 1].data_fechamento_lote : 'o último lote'}, as inscrições são feitas à vista ou parceladas no cartão, com acréscimo das taxas.
           </li>
         </ul>
