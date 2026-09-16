@@ -14,6 +14,7 @@ export type FaixaPagamento =
 
 
 export interface Lote {
+  type_lote: string;
   id_lote: string;
   lote_desc: string;
   data_abertura_lote: string;
