@@ -6,21 +6,31 @@ import { useRouter } from "next/navigation";
 export default function LoginPage() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState(false);
+  const [carregando, setCarregando] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro(false);
+    setCarregando(true);
 
-    // Verifica se a senha bate com a do Middleware
-    if (senha === "siao2027admin") {
-      // Cria um cookie que dura 7 dias. Assim ele não precisa logar todo dia.
-      document.cookie = `admin_token=${senha}; path=/; max-age=${60 * 60 * 24 * 7}`;
-      
-      // Redireciona para o painel
-      router.push("/admin/conciliacao");
-    } else {
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ senha }),
+      });
+
+      if (res.ok) {
+        router.push("/admin/conciliacao");
+        router.refresh();
+      } else {
+        setErro(true);
+      }
+    } catch (err) {
       setErro(true);
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -46,6 +56,8 @@ export default function LoginPage() {
               placeholder="Digite a senha"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
+              autoComplete="current-password"
+              spellCheck="false"
               className="w-full p-4 bg-slate-900 border border-slate-700 rounded-xl text-center text-lg text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               required
             />
@@ -59,9 +71,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition"
+            disabled={carregando}
+            className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
           >
-            Entrar no Painel
+            {carregando ? "Verificando..." : "Entrar no Painel"}
           </button>
         </form>
 

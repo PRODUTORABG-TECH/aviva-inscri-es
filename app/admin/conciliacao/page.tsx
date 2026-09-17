@@ -141,6 +141,15 @@ export default function DashboardConciliacao() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+      window.location.href = "/admin/login"; // Redireciona e limpa o estado da página
+    } catch (err) {
+      alert("Erro ao sair. Tente novamente.");
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto py-6 px-4">
       
@@ -151,8 +160,20 @@ export default function DashboardConciliacao() {
             <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Inscrições e Conciliação</h2>
             <p className="text-sm text-slate-500">Gerencie os pagamentos e dê baixas manuais.</p>
           </div>
-          <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold border border-blue-100 self-start md:self-auto">
+          <div>
+            <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-semibold border border-blue-100 self-start md:self-auto">
             Total: {inscricoesFiltradas.length} inscrições
+          </div>
+          <button
+              onClick={handleLogout}
+              className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold border border-red-200 transition flex items-center gap-2"
+              title="Encerrar sessão"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Sair
+            </button>
           </div>
         </div>
 
@@ -168,6 +189,7 @@ export default function DashboardConciliacao() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
+        
       </div>
 
       {loading && (

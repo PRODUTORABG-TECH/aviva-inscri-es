@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Pegamos o cookie de autenticação, se existir
   const token = request.cookies.get('admin_token')?.value;
   
   // A senha que os voluntários vão usar
-  const SENHA_SECRETA = process.env.ADMIN_SECRET_KEY || 'siao2027admin';
+  const SENHA_SECRETA = process.env.ADMIN_SECRET_KEY;
 
   // Se tentar acessar qualquer rota dentro de /admin (exceto a própria página de login)
   if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {
