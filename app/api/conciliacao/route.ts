@@ -1,12 +1,34 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+
+
+
+  const cookieStore = await cookies();
+    const token = cookieStore.get('admin_token')?.value;
+    const SENHA_SECRETA = process.env.ADMIN_SECRET_KEY;
+  
+  
+    if (token !== SENHA_SECRETA) {
+      return NextResponse.json({ error: 'Acesso negado. Não autorizado.' }, { status: 401 });
+    }
+  
+    const n8nUrl_set_inscricoes = process.env.N8N_WEBHOOK_URL_SET_INSCRICAO;
+  
+  
+    if (!n8nUrl_set_inscricoes) {
+      console.error("Variável de ambiente N8N_WEBHOOK_URL_SET_INSCRICAO não configurada.");
+      return NextResponse.json( 
+        { error: 'Erro de configuração no servidor.' },
+        { status: 500 }
+      );
+    }
+
+
   try {
     const body = await request.json();
 
-    // 1. Extração Segura (Destructuring)
-    // Pegamos APENAS o id_inscricao e o objeto status.
-    // Variáveis como 'nome', 'telefone' ou 'data' são ignoradas automaticamente aqui.
     const { id_inscricao, status } = body;
 
     // Validação básica
@@ -30,10 +52,10 @@ export async function POST(request: Request) {
     };
 
     // 3. Valida as variáveis de ambiente
-    const n8nUrl = "https://n8n.produtorabg.com/webhook/update-status-inscricao";
+    const n8nUrl_set_inscricoes = process.env.N8N_WEBHOOK_URL_SET_INSCRICAO;
     const n8nSecret = process.env.N8N_SECRET;
 
-    if (!n8nUrl || !n8nSecret) {
+    if (!n8nUrl_set_inscricoes || !n8nSecret) {
       console.error("Variáveis de ambiente do n8n não configuradas.");
       return NextResponse.json(
         { error: 'Erro de configuração no servidor.' },
@@ -42,7 +64,7 @@ export async function POST(request: Request) {
     }
 
     // 4. Envia para o n8n com a chave de segurança
-    const response = await fetch(n8nUrl, {
+    const response = await fetch(n8nUrl_set_inscricoes, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
